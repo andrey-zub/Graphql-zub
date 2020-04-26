@@ -69,7 +69,10 @@ type TripUpdateResponse {
   launches: [Launch]
 }
 
-
+type Mission {
+   # ... with rest of schema
+   missionPatch(mission: String, size: PatchSize): String
+ }
 `;
 
 module.exports = typeDefs;
