@@ -6,25 +6,32 @@ import { LaunchTile, Header, Button, Loading } from '../components';
 import { RouteComponentProps } from '@reach/router';
 import * as GetLaunchListTypes from './__generated__/GetLaunchList';
 
+export const LAUNCH_TILE_DATA = gql`
+  fragment LaunchTile on Launch {
+    id
+    isBooked
+    rocket {
+      id
+      name
+    }
+    mission {
+      name
+      missionPatch
+    }
+  }
+`;
+
 const GET_LAUNCHES = gql`
   query launchList($after: String) {
     launches(after: $after) {
       cursor
       hasMore
       launches {
-        id
-        isBooked
-        rocket {
-          id
-          name
-        }
-        mission {
-          name
-          missionPatch
-        }
+        ...LaunchTile
       }
     }
   }
+  ${LAUNCH_TILE_DATA}
 `;
 
 interface LaunchesProps extends RouteComponentProps {}
@@ -33,7 +40,8 @@ const Launches: React.FC<LaunchesProps> = () => {
   const {
     data,
     loading,
-    error
+    error,
+     fetchMore
   } = useQuery<
     GetLaunchListTypes.GetLaunchList,
     GetLaunchListTypes.GetLaunchListVariables
@@ -51,12 +59,38 @@ const Launches: React.FC<LaunchesProps> = () => {
         data.launches.launches.map((launch: any) => (
           <LaunchTile key={launch.id} launch={launch} />
         ))}
+
+        {data.launches &&
+  data.launches.hasMore && (
+    <Button
+      onClick={() =>
+        fetchMore({
+          variables: {
+            after: data.launches.cursor,
+          },
+          updateQuery: (prev, { fetchMoreResult, ...rest }) => {
+            if (!fetchMoreResult) return prev;
+            return {
+              ...fetchMoreResult,
+              launches: {
+                ...fetchMoreResult.launches,
+                launches: [
+                  ...prev.launches.launches,
+                  ...fetchMoreResult.launches.launches,
+                ],
+              },
+            };
+          },
+        })
+      }
+    >
+      Load More
+    </Button>
+  )
+}
     </Fragment>
   );
 }
-
-export const LAUNCH_TILE_DATA = gql`
-`;
 
 
 export default Launches;
