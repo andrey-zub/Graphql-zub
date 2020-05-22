@@ -16,7 +16,8 @@ module.exports = {
       return {
         launches,
         cursor: launches.length ? launches[launches.length - 1].cursor : null,
-
+        // if the cursor of the end of the paginated results is the same as the
+        // last item in _all_ results, then there are no more results after this
         hasMore: launches.length
           ? launches[launches.length - 1].cursor !==
             allLaunches[allLaunches.length - 1].cursor
@@ -41,10 +42,13 @@ module.exports = {
             currency: 'usd',
             payment_method: cardToken,
 
-
+            // A PaymentIntent can be confirmed some time after creation,
+            // but here we want to confirm (collect payment) immediately.
             confirm: true,
 
-
+            // If the payment requires any follow-up actions from the
+            // customer, like two-factor authentication, Stripe will error
+            // and you will need to prompt them for a new payment method.
             error_on_requires_action: true
           });
 
@@ -99,7 +103,7 @@ module.exports = {
       dataSources.userAPI.isBookedOnLaunch({ launchId: launch.id }),
   },
   Mission: {
-
+    // make sure the default size is 'large' in case user doesn't specify
     missionPatch: (mission, { size } = { size: 'LARGE' }) => {
       return size === 'SMALL'
         ? mission.missionPatchSmall
@@ -108,12 +112,12 @@ module.exports = {
   },
   User: {
     trips: async (_, __, { dataSources }) => {
-
+      // get ids of launches by user
       const launchIds = await dataSources.userAPI.getLaunchIdsByUser();
 
       if (!launchIds.length) return [];
 
-
+      // look up those launches by their ids
       return (
         dataSources.launchAPI.getLaunchesByIds({
           launchIds,

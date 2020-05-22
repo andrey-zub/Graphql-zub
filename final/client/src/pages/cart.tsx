@@ -38,14 +38,13 @@ const Cart: React.FC<CartProps> = () => {
           {!!data && data.cartItems.map((launchId: any) => (
             <CartItem key={launchId} launchId={launchId} />
           ))}
-
           <Elements stripe={stripePromise}>
-              <BookTrips cartItems={!!data ? data.cartItems : []} />
-            </Elements>
+            <BookTrips cartItems={!!data ? data.cartItems : []} />
+          </Elements>
         </Fragment>
       )}
     </Fragment>
   );
 }
 
-export default Cart;
+export default Cart;ss
